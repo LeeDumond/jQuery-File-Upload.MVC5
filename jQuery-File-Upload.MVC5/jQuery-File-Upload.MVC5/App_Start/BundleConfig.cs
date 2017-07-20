@@ -70,7 +70,7 @@ namespace jQuery_File_Upload.MVC5
 "~/Scripts/blueimp-gallery2/js/jquery.blueimp-gallery.js"
 
 ));
-            bundles.Add(new ScriptBundle("~/bundles/Blueimp-Gallerry2").Include(//Blueimp Gallery 2 
+            bundles.Add(new ScriptBundle("~/bundles/Blueimp-Gallery2").Include(//Blueimp Gallery 2 
 "~/Scripts/blueimp-gallery2/js/blueimp-gallery.js",
 "~/Scripts/blueimp-gallery2/js/blueimp-gallery-video.js",
 "~/Scripts/blueimp-gallery2/js/blueimp-gallery-indicator.js",
