@@ -20,7 +20,7 @@
 </div>
 <div id="links">
 
-    @if (@Model.Files != null && @Model.Files.Length!=0)
+    @if (@Model.Files != null && @Model.Files.Any())
     {
         foreach (ViewDataUploadFilesResult file in @Model.Files)
         {

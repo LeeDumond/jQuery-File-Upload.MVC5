@@ -524,6 +524,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Files\somefiles\thumbs\" />
+    <Folder Include="Services\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
