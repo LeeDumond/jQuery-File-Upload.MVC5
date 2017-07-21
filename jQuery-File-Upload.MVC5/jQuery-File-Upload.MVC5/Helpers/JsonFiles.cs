@@ -9,7 +9,7 @@ namespace jQuery_File_Upload.MVC5.Helpers
         // ReSharper disable once MemberCanBePrivate.Global
         public readonly ViewDataUploadFilesResult[] files;
 
-        public string TempFolder { get; set; }
+        //public string TempFolder { get; set; }
 
         public JsonFiles(List<ViewDataUploadFilesResult> filesList)
         {
