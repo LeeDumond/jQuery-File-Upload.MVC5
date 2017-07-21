@@ -194,3 +194,4 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+/jQuery-File-Upload.MVC5/jQuery-File-Upload.MVC5/Files/somefiles/*
