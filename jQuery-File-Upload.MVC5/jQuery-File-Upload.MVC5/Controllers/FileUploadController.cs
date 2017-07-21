@@ -12,31 +12,32 @@ namespace jQuery_File_Upload.MVC5.Controllers
 {
     public class FileUploadController : Controller
     {
-        FilesHelper filesHelper;
-        String tempPath = "~/somefiles/";
-        String serverMapPath = "~/Files/somefiles/";
-        private string StorageRoot
-        {
-            get { return Path.Combine(HostingEnvironment.MapPath(serverMapPath)); }
-        }
-        private string UrlBase = "/Files/somefiles/";
-        String DeleteURL = "/FileUpload/DeleteFile/?file=";
-        String DeleteType = "GET";
+        private readonly FilesHelper _filesHelper;
+        private const string TempPath = "~/somefiles/";
+        private const string ServerMapPath = "~/Files/somefiles/";
+        private const string UrlBase = "/Files/somefiles/";
+        private const string DeleteUrl = "/FileUpload/DeleteFile/?file=";
+        private const string DeleteType = "GET";
+
+        private string StorageRoot => Path.Combine(HostingEnvironment.MapPath(ServerMapPath));
+
         public FileUploadController()
         {
-           filesHelper = new FilesHelper(DeleteURL, DeleteType, StorageRoot, UrlBase, tempPath, serverMapPath);
+           _filesHelper = new FilesHelper(DeleteUrl, DeleteType, StorageRoot, UrlBase, TempPath, ServerMapPath);
         }
       
         public ActionResult Index()
         {
             return View();
         }
+
         public ActionResult Show()
         {
-            JsonFiles ListOfFiles = filesHelper.GetFileList();
+            JsonFiles listOfFiles = _filesHelper.GetFileList();
+
             var model = new FilesViewModel()
             {
-                Files = ListOfFiles.files
+                Files = listOfFiles.files
             };
           
             return View(model);
@@ -51,33 +52,27 @@ namespace jQuery_File_Upload.MVC5.Controllers
         public JsonResult Upload()
         {
             var resultList = new List<ViewDataUploadFilesResult>();
-           
-            var CurrentContext = HttpContext;
 
-            filesHelper.UploadAndShowResults(CurrentContext, resultList);
-            JsonFiles files = new JsonFiles(resultList);
+            _filesHelper.UploadAndShowResults(HttpContext, resultList);
 
-            bool isEmpty = !resultList.Any();
-            if (isEmpty)
-            {
-                return Json("Error ");
-            }
-            else
-            {
-                return Json(files);
-            }
+            var files = new JsonFiles(resultList);
+
+            return resultList.Any() ? Json(files) : Json("Error");
         }
+
         public JsonResult GetFileList()
         {
-            var list=filesHelper.GetFileList();
+            var list=_filesHelper.GetFileList();
+
             return Json(list,JsonRequestBehavior.AllowGet);
         }
+
         [HttpGet]
         public JsonResult DeleteFile(string file)
         {
-            filesHelper.DeleteFile(file);
+            _filesHelper.DeleteFile(file);
+
             return Json("OK", JsonRequestBehavior.AllowGet);
         }
-       
     }
 }
