@@ -35,7 +35,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
             var model = new FilesViewModel
             {
-                Files = listOfFiles.Files
+                Files = listOfFiles.files
             };
 
             return View(model);
@@ -51,7 +51,8 @@ namespace jQuery_File_Upload.MVC5.Controllers
         {
             var resultList = new List<ViewDataUploadFilesResult>();
 
-            _filesHelper.UploadAndAddToResults(HttpContext.Request, resultList);
+            //_filesHelper.UploadAndAddToResults(HttpContext.Request, resultList);
+            _filesHelper.UploadAndAddToResults(Request, resultList);
 
             var files = new JsonFiles(resultList);
 

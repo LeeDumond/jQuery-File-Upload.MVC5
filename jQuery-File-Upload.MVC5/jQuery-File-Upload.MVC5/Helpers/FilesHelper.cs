@@ -238,13 +238,13 @@ namespace jQuery_File_Upload.MVC5.Helpers
 
             var result = new ViewDataUploadFilesResult
             {
-                Name = fileName,
-                Size = fileSize,
-                Type = getType,
-                Url = _urlBase + fileName,
-                DeleteUrl = _deleteUrl + fileName,
-                ThumbnailUrl = GetThumbnailUrl(getType, fileName),
-                DeleteType = _deleteType
+                name = fileName,
+                size = fileSize,
+                type = getType,
+                url = _urlBase + fileName,
+                deleteUrl = _deleteUrl + fileName,
+                thumbnailUrl = GetThumbnailUrl(getType, fileName),
+                deleteType = _deleteType
             };
 
             return result;

@@ -5,18 +5,20 @@ namespace jQuery_File_Upload.MVC5.Helpers
 {
     public class JsonFiles
     {
-        public ViewDataUploadFilesResult[] Files { get; }
+        // ReSharper disable once InconsistentNaming
+        // ReSharper disable once MemberCanBePrivate.Global
+        public readonly ViewDataUploadFilesResult[] files;
 
-        //public string TempFolder { get; set; }
+        public string TempFolder { get; set; }
 
         public JsonFiles(List<ViewDataUploadFilesResult> filesList)
         {
-            Files = new ViewDataUploadFilesResult[filesList.Count];
-
-            for (var i = 0; i < filesList.Count; i++)
+            files = new ViewDataUploadFilesResult[filesList.Count];
+            for (int i = 0; i < filesList.Count; i++)
             {
-                Files[i] = filesList.ElementAt(i);
+                files[i] = filesList.ElementAt(i);
             }
+
         }
     }
 }

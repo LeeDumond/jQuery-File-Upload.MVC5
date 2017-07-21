@@ -25,16 +25,16 @@
         foreach (ViewDataUploadFilesResult file in @Model.Files)
         {
 
-            if (file.Type.Equals("video/mp4"))
+            if (file.type.Equals("video/mp4"))
             {
              
-                <a href="@file.Url" title="@file.Name" type="video/mp4" data-description="This is a movie."><img src="@file.ThumbnailUrl" alt="@file.Name"></a>
+                <a href="@file.url" title="@file.name" type="video/mp4" data-description="This is a movie."><img src="@file.thumbnailUrl" alt="@file.name"></a>
 
 
             }
             else
             {
-                <a href="@file.Url" title="@file.Name" data-description="This is a image."><img src="@file.ThumbnailUrl" alt="@file.Name"></a>
+                <a href="@file.url" title="@file.name" data-description="This is a image."><img src="@file.thumbnailUrl" alt="@file.name"></a>
             }
 
         }
