@@ -65,13 +65,13 @@ namespace jQuery_File_Upload.MVC5.Services
         public bool DeleteFile(object identifier)
         {
             // in this implementation, identifier is file name
-            string file = identifier as string;
+            string fileName = identifier as string;
 
-            if (file != null)
+            if (fileName != null)
             {
-                var fullPath = Path.Combine(_storageRoot, file);
+                var fullPath = Path.Combine(_storageRoot, fileName);
 
-                var thumbnailPath = Path.Combine(Path.Combine(_storageRoot, "thumbs"), file + "80x80.jpg");
+                var thumbnailPath = Path.Combine(Path.Combine(_storageRoot, "thumbs"), Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg");
 
                 if (File.Exists(fullPath))
                 {
@@ -93,7 +93,7 @@ namespace jQuery_File_Upload.MVC5.Services
         {
             for (var i = 0; i < request.Files.Count; i++)
             {
-                var file = request.Files[i];
+                HttpPostedFileWrapper file = (HttpPostedFileWrapper) request.Files[i];
                 var pathOnServer = Path.Combine(_storageRoot);
                 var fullPath = Path.Combine(pathOnServer, Path.GetFileName(file.FileName));
                 file.SaveAs(fullPath);
@@ -107,14 +107,13 @@ namespace jQuery_File_Upload.MVC5.Services
                     //Do not create thumb if file is not an image
                     if (extension == "jpg" || extension == "png" || extension == "jpeg")
                     {
-                        var thumbfullPath = Path.Combine(pathOnServer, "thumbs");
-                        //String fileThumb = file.FileName + ".80x80.jpg";
-                        var fileThumb = Path.GetFileNameWithoutExtension(file.FileName) + "80x80.jpg";
-                        var thumbfullPath2 = Path.Combine(thumbfullPath, fileThumb);
+                        string thumbnailFileName = Path.GetFileNameWithoutExtension(file.FileName) + "80x80.jpg";
+                        string thumbnailFilePath = Path.Combine(Path.Combine(pathOnServer, "thumbs"), thumbnailFileName);
+
                         using (var stream = new MemoryStream(File.ReadAllBytes(fullPath)))
                         {
                             var thumbnail = new WebImage(stream).Resize(80, 80);
-                            thumbnail.Save(thumbfullPath2, "jpg");
+                            thumbnail.Save(thumbnailFilePath, "jpg");
                         }
                     }
                 }
@@ -126,6 +125,11 @@ namespace jQuery_File_Upload.MVC5.Services
         private void UploadPartialFile(string fileName, HttpRequestBase request,
             List<ViewDataUploadFilesResult> uploadResults)
         {
+            if (fileName == null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
             if (request.Files.Count != 1)
             {
                 throw new HttpRequestValidationException(
@@ -141,14 +145,14 @@ namespace jQuery_File_Upload.MVC5.Services
 
             var inputStream = file.InputStream;
             var pathOnServer = Path.Combine(_storageRoot);
-            var fullName = Path.Combine(pathOnServer, Path.GetFileName(file.FileName));
-            var thumbfullPath = Path.Combine(fullName, Path.GetFileName(file.FileName + "80x80.jpg"));
+            string thumbnailFileName = Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
+            string thumbnailFilePath = Path.Combine(Path.Combine(pathOnServer, "thumbs"), thumbnailFileName);
 
             var handler = new ImageHandler();
+            var bitmap = ImageHandler.LoadImage(Path.Combine(pathOnServer, Path.GetFileName(fileName)));
+            handler.Save(bitmap, 80, 80, 10, thumbnailFilePath);
 
-            var imageBit = ImageHandler.LoadImage(fullName);
-            handler.Save(imageBit, 80, 80, 10, thumbfullPath);
-            using (var fs = new FileStream(fullName, FileMode.Append, FileAccess.Write))
+            using (var fs = new FileStream(Path.Combine(pathOnServer, Path.GetFileName(fileName)), FileMode.Append, FileAccess.Write))
             {
                 var buffer = new byte[1024];
 

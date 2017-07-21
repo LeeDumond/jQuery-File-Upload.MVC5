@@ -86,7 +86,6 @@ namespace jQuery_File_Upload.MVC5.Helpers
                 factor = (double) MAX_PIXELS / originalHeight;
             }
 
-            // Return thumbnail size.
             return new Size((int) (originalWidth * factor), (int) (originalHeight * factor));
         }
 
