@@ -1,159 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Hosting;
+using jQuery_File_Upload.MVC5.Helpers;
 
-namespace jQuery_File_Upload.MVC5.Helpers
+namespace jQuery_File_Upload.MVC5.Services
 {
-    public class FilesHelper
+    public interface IFileService
     {
-        private readonly string _deleteType;
+        void UploadAndAddToResults(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults);
+    }
 
-        private readonly string _deleteUrl;
-
-        //ex:"~/Files/something/";
-        private readonly string _serverMapPath;
+    public class SystemFileService : IFileService
+    {
+        private const string DeleteType = "GET";
+        private const string DeleteUrl = "/FileUpload/DeleteFile/?file=";
+        private const string ServerMapPath = "~/Files/somefiles/";
+        private const string UrlBase = "/Files/somefiles/";
 
         private readonly string _storageRoot;
 
-        private readonly string _tempPath;
-        private readonly string _urlBase;
-
-        public FilesHelper(string deleteUrl, string deleteType, string storageRoot, string urlBase, string tempPath,
-            string serverMapPath)
+        public SystemFileService()
         {
-            _deleteUrl = deleteUrl;
-            _deleteType = deleteType;
-            _storageRoot = storageRoot;
-            _urlBase = urlBase;
-            _tempPath = tempPath;
-            _serverMapPath = serverMapPath;
+            _storageRoot = Path.Combine(HostingEnvironment.MapPath(ServerMapPath));
         }
 
         public void UploadAndAddToResults(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
         {
-            //System.Diagnostics.Debug.WriteLine(Directory.Exists(_tempPath));
-
             var fullPath = Path.Combine(_storageRoot);
             Directory.CreateDirectory(fullPath);
             // Create new folder for thumbs
             Directory.CreateDirectory(fullPath + "/thumbs/");
 
-            foreach (string inputTagName in request.Files)
+            var headers = request.Headers;
+
+            if (string.IsNullOrEmpty(headers["X-File-Name"]))
             {
-                var headers = request.Headers;
-
-                var file = request.Files[inputTagName];
-                Debug.WriteLine(file?.FileName ?? "null");
-
-                if (string.IsNullOrEmpty(headers["X-File-Name"]))
-                {
-                    UploadWholeFile(request, uploadResults);
-                }
-                else
-                {
-                    UploadPartialFile(headers["X-File-Name"], request, uploadResults);
-                }
+                UploadWholeFile(request, uploadResults);
             }
-        }
-
-        public string DeleteFile(string file)
-        {
-            //System.Diagnostics.Debug.WriteLine("DeleteFile");
-            //    var req = HttpContext.Current;
-            //System.Diagnostics.Debug.WriteLine(file);
-
-            var fullPath = Path.Combine(_storageRoot, file);
-            //System.Diagnostics.Debug.WriteLine(fullPath);
-            //System.Diagnostics.Debug.WriteLine(File.Exists(fullPath));
-
-            //string thumbPath = "/" + file + "80x80.jpg";
-
-            var partThumb1 = Path.Combine(_storageRoot, "thumbs");
-            var partThumb2 = Path.Combine(partThumb1, file + "80x80.jpg");
-
-            //System.Diagnostics.Debug.WriteLine(partThumb2);
-            //System.Diagnostics.Debug.WriteLine(File.Exists(partThumb2));
-            if (File.Exists(fullPath))
+            else
             {
-                //delete thumb 
-                if (File.Exists(partThumb2))
-                {
-                    File.Delete(partThumb2);
-                }
-
-                File.Delete(fullPath);
-
-                return "Ok";
+                UploadPartialFile(headers["X-File-Name"], request, uploadResults);
             }
-
-            return "Error deleting the file.";
-        }
-
-        public void DeleteFiles(string pathToDelete)
-        {
-            var path = HostingEnvironment.MapPath(pathToDelete);
-
-            if (path != null)
-            {
-                //System.Diagnostics.Debug.WriteLine(path);
-                if (Directory.Exists(path))
-                {
-                    var di = new DirectoryInfo(path);
-                    foreach (var fi in di.GetFiles())
-                    {
-                        File.Delete(fi.FullName);
-                        //System.Diagnostics.Debug.WriteLine(fi.Name);
-                    }
-
-                    di.Delete(true);
-                }
-            }
-        }
-
-        public JsonFiles GetFileList()
-        {
-            var fileResults = new List<ViewDataUploadFilesResult>();
-
-            var fullPath = Path.Combine(_storageRoot);
-
-            if (Directory.Exists(fullPath))
-            {
-                var dir = new DirectoryInfo(fullPath);
-
-                foreach (var file in dir.GetFiles())
-                {
-                    var size = unchecked((int) file.Length);
-
-                    fileResults.Add(GetUploadResult(file.Name, size, file.FullName));
-                }
-            }
-
-            return new JsonFiles(fileResults);
-        }
-
-        public List<string> GetFileNamesList()
-        {
-            var files = new List<string>();
-
-            var path = HostingEnvironment.MapPath(_serverMapPath);
-
-            //System.Diagnostics.Debug.WriteLine(path);
-
-            if (Directory.Exists(path))
-            {
-                var di = new DirectoryInfo(path);
-                foreach (var fi in di.GetFiles())
-                {
-                    files.Add(fi.Name);
-                    //System.Diagnostics.Debug.WriteLine(fi.Name);
-                }
-            }
-
-            return files;
         }
 
         private void UploadWholeFile(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
@@ -241,10 +131,10 @@ namespace jQuery_File_Upload.MVC5.Helpers
                 name = fileName,
                 size = fileSize,
                 type = getType,
-                url = _urlBase + fileName,
-                deleteUrl = _deleteUrl + fileName,
+                url = UrlBase + fileName,
+                deleteUrl = DeleteUrl + fileName,
                 thumbnailUrl = GetThumbnailUrl(getType, fileName),
-                deleteType = _deleteType
+                deleteType = DeleteType
             };
 
             return result;
@@ -261,7 +151,7 @@ namespace jQuery_File_Upload.MVC5.Helpers
                 if (extension.Equals("jpeg") || extension.Equals("jpg") || extension.Equals("png") ||
                     extension.Equals("gif"))
                 {
-                    return _urlBase + "thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
+                    return UrlBase + "thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
                 }
 
                 if (extension.Equals("octet-stream")) //Fix for exe files
@@ -277,7 +167,7 @@ namespace jQuery_File_Upload.MVC5.Helpers
                 return "/Content/Free-file-icons/48px/" + extension + ".png";
             }
 
-            return _urlBase + "/thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
+            return UrlBase + "/thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
         }
     }
 }

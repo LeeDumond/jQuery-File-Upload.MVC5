@@ -131,6 +131,8 @@
     <Compile Include="Helpers\ViewDataUploadFilesResult.cs" />
     <Compile Include="Models\FilesViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IFileService.cs" />
+    <Compile Include="Services\IStorageService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\blueimp-gallery2\css\blueimp-gallery-indicator.css" />
@@ -524,7 +526,6 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Files\somefiles\thumbs\" />
-    <Folder Include="Services\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
