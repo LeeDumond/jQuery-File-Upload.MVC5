@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Hosting;
@@ -10,178 +10,211 @@ namespace jQuery_File_Upload.MVC5.Helpers
 {
     public class FilesHelper
     {
+        private readonly string _deleteType;
 
-        String DeleteURL = null;
-        String DeleteType = null;
-        String StorageRoot = null;
-        String UrlBase = null;
-        String tempPath = null;
+        private readonly string _deleteUrl;
+
         //ex:"~/Files/something/";
-        String serverMapPath = null;
-        public FilesHelper(String DeleteURL, String DeleteType, String StorageRoot, String UrlBase, String tempPath, String serverMapPath)
+        private readonly string _serverMapPath;
+
+        private readonly string _storageRoot;
+
+        private readonly string _tempPath;
+        private readonly string _urlBase;
+
+        public FilesHelper(string deleteUrl, string deleteType, string storageRoot, string urlBase, string tempPath,
+            string serverMapPath)
         {
-            this.DeleteURL = DeleteURL;
-            this.DeleteType = DeleteType;
-            this.StorageRoot = StorageRoot;
-            this.UrlBase = UrlBase;
-            this.tempPath = tempPath;
-            this.serverMapPath = serverMapPath;
+            _deleteUrl = deleteUrl;
+            _deleteType = deleteType;
+            _storageRoot = storageRoot;
+            _urlBase = urlBase;
+            _tempPath = tempPath;
+            _serverMapPath = serverMapPath;
         }
 
-        public void DeleteFiles(String pathToDelete)
+        public void DeleteFiles(string pathToDelete)
         {
-         
-            string path = HostingEnvironment.MapPath(pathToDelete);
+            var path = HostingEnvironment.MapPath(pathToDelete);
 
-            System.Diagnostics.Debug.WriteLine(path);
-            if (Directory.Exists(path))
+            if (path != null)
             {
-                DirectoryInfo di = new DirectoryInfo(path);
-                foreach (FileInfo fi in di.GetFiles())
+                //System.Diagnostics.Debug.WriteLine(path);
+                if (Directory.Exists(path))
                 {
-                    System.IO.File.Delete(fi.FullName);
-                    System.Diagnostics.Debug.WriteLine(fi.Name);
-                }
+                    var di = new DirectoryInfo(path);
+                    foreach (var fi in di.GetFiles())
+                    {
+                        File.Delete(fi.FullName);
+                        //System.Diagnostics.Debug.WriteLine(fi.Name);
+                    }
 
-                di.Delete(true);
+                    di.Delete(true);
+                }
             }
         }
 
-        public String DeleteFile(String file)
+        public string DeleteFile(string file)
         {
-            System.Diagnostics.Debug.WriteLine("DeleteFile");
+            //System.Diagnostics.Debug.WriteLine("DeleteFile");
             //    var req = HttpContext.Current;
-            System.Diagnostics.Debug.WriteLine(file);
- 
-            String fullPath = Path.Combine(StorageRoot, file);
-            System.Diagnostics.Debug.WriteLine(fullPath);
-            System.Diagnostics.Debug.WriteLine(System.IO.File.Exists(fullPath));
-            String thumbPath = "/" + file + "80x80.jpg";
-            String partThumb1 = Path.Combine(StorageRoot, "thumbs");
-            String partThumb2 = Path.Combine(partThumb1, file + "80x80.jpg");
+            //System.Diagnostics.Debug.WriteLine(file);
 
-            System.Diagnostics.Debug.WriteLine(partThumb2);
-            System.Diagnostics.Debug.WriteLine(System.IO.File.Exists(partThumb2));
-            if (System.IO.File.Exists(fullPath))
+            var fullPath = Path.Combine(_storageRoot, file);
+            //System.Diagnostics.Debug.WriteLine(fullPath);
+            //System.Diagnostics.Debug.WriteLine(File.Exists(fullPath));
+
+            //string thumbPath = "/" + file + "80x80.jpg";
+
+            var partThumb1 = Path.Combine(_storageRoot, "thumbs");
+            var partThumb2 = Path.Combine(partThumb1, file + "80x80.jpg");
+
+            //System.Diagnostics.Debug.WriteLine(partThumb2);
+            //System.Diagnostics.Debug.WriteLine(File.Exists(partThumb2));
+            if (File.Exists(fullPath))
             {
                 //delete thumb 
-                if (System.IO.File.Exists(partThumb2))
+                if (File.Exists(partThumb2))
                 {
-                    System.IO.File.Delete(partThumb2);
+                    File.Delete(partThumb2);
                 }
-                System.IO.File.Delete(fullPath);
-                String succesMessage = "Ok";
-                return succesMessage;
+
+                File.Delete(fullPath);
+
+                return "Ok";
             }
-            String failMessage = "Error Delete";
-            return failMessage;
+
+            return "Error Delete";
         }
+
         public JsonFiles GetFileList()
         {
+            var fileResults = new List<ViewDataUploadFilesResult>();
 
-            var r = new List<ViewDataUploadFilesResult>();
-       
-            String fullPath = Path.Combine(StorageRoot);
+            var fullPath = Path.Combine(_storageRoot);
+
             if (Directory.Exists(fullPath))
             {
-                DirectoryInfo dir = new DirectoryInfo(fullPath);
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    int SizeInt = unchecked((int)file.Length);
-                    r.Add(UploadResult(file.Name,SizeInt,file.FullName));
-                }
+                var dir = new DirectoryInfo(fullPath);
 
+                foreach (var file in dir.GetFiles())
+                {
+                    var size = unchecked((int) file.Length);
+
+                    fileResults.Add(GetUploadResult(file.Name, size, file.FullName));
+                }
             }
-            JsonFiles files = new JsonFiles(r);
+
+            return new JsonFiles(fileResults);
+        }
+
+        public List<string> GetFileNamesList()
+        {
+            var files = new List<string>();
+
+            var path = HostingEnvironment.MapPath(_serverMapPath);
+
+            //System.Diagnostics.Debug.WriteLine(path);
+
+            if (Directory.Exists(path))
+            {
+                var di = new DirectoryInfo(path);
+                foreach (var fi in di.GetFiles())
+                {
+                    files.Add(fi.Name);
+                    //System.Diagnostics.Debug.WriteLine(fi.Name);
+                }
+            }
 
             return files;
         }
 
-        public void UploadAndShowResults(HttpContextBase ContentBase, List<ViewDataUploadFilesResult> resultList)
+        public void UploadAndAddToResults(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
         {
-            var httpRequest = ContentBase.Request;
-            System.Diagnostics.Debug.WriteLine(Directory.Exists(tempPath));
+            //System.Diagnostics.Debug.WriteLine(Directory.Exists(_tempPath));
 
-            String fullPath = Path.Combine(StorageRoot);
+            var fullPath = Path.Combine(_storageRoot);
             Directory.CreateDirectory(fullPath);
             // Create new folder for thumbs
             Directory.CreateDirectory(fullPath + "/thumbs/");
 
-            foreach (String inputTagName in httpRequest.Files)
+            foreach (string inputTagName in request.Files)
             {
+                var headers = request.Headers;
 
-                var headers = httpRequest.Headers;
-
-                var file = httpRequest.Files[inputTagName];
-                System.Diagnostics.Debug.WriteLine(file.FileName);
+                var file = request.Files[inputTagName];
+                Debug.WriteLine(file.FileName);
 
                 if (string.IsNullOrEmpty(headers["X-File-Name"]))
                 {
-
-                    UploadWholeFile(ContentBase, resultList);
+                    UploadWholeFile(request, uploadResults);
                 }
                 else
                 {
-
-                    UploadPartialFile(headers["X-File-Name"], ContentBase, resultList);
+                    UploadPartialFile(headers["X-File-Name"], request, uploadResults);
                 }
             }
         }
 
-
-        private void UploadWholeFile(HttpContextBase requestContext, List<ViewDataUploadFilesResult> statuses)
+        private void UploadWholeFile(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
         {
-
-            var request = requestContext.Request;
-            for (int i = 0; i < request.Files.Count; i++)
+            for (var i = 0; i < request.Files.Count; i++)
             {
                 var file = request.Files[i];
-                String pathOnServer = Path.Combine(StorageRoot);
+                var pathOnServer = Path.Combine(_storageRoot);
                 var fullPath = Path.Combine(pathOnServer, Path.GetFileName(file.FileName));
                 file.SaveAs(fullPath);
-    
+
                 //Create thumb
-                string[] imageArray = file.FileName.Split('.');
+                var imageArray = file.FileName.Split('.');
                 if (imageArray.Length != 0)
                 {
-                    String extansion = imageArray[imageArray.Length - 1].ToLower();
-                    if (extansion != "jpg" && extansion != "png" && extansion != "jpeg") //Do not create thumb if file is not an image
+                    var extension = imageArray[imageArray.Length - 1].ToLower();
+
+                    //Do not create thumb if file is not an image
+                    if (extension == "jpg" || extension == "png" || extension == "jpeg")
                     {
-                        
-                    }
-                    else
-                    {
-                        var ThumbfullPath = Path.Combine(pathOnServer, "thumbs");
+                        var thumbfullPath = Path.Combine(pathOnServer, "thumbs");
                         //String fileThumb = file.FileName + ".80x80.jpg";
-                        String fileThumb = Path.GetFileNameWithoutExtension(file.FileName) + "80x80.jpg";
-                        var ThumbfullPath2 = Path.Combine(ThumbfullPath, fileThumb);
-                        using (MemoryStream stream = new MemoryStream(System.IO.File.ReadAllBytes(fullPath)))
+                        var fileThumb = Path.GetFileNameWithoutExtension(file.FileName) + "80x80.jpg";
+                        var thumbfullPath2 = Path.Combine(thumbfullPath, fileThumb);
+                        using (var stream = new MemoryStream(File.ReadAllBytes(fullPath)))
                         {
                             var thumbnail = new WebImage(stream).Resize(80, 80);
-                            thumbnail.Save(ThumbfullPath2, "jpg");
+                            thumbnail.Save(thumbfullPath2, "jpg");
                         }
-
                     }
                 }
-                statuses.Add(UploadResult(file.FileName, file.ContentLength, file.FileName));
+
+                uploadResults.Add(GetUploadResult(file.FileName, file.ContentLength, file.FileName));
             }
         }
 
-
-
-        private void UploadPartialFile(string fileName, HttpContextBase requestContext, List<ViewDataUploadFilesResult> statuses)
+        private void UploadPartialFile(string fileName, HttpRequestBase request,
+            List<ViewDataUploadFilesResult> uploadResults)
         {
-            var request = requestContext.Request;
-            if (request.Files.Count != 1) throw new HttpRequestValidationException("Attempt to upload chunked file containing more than one fragment per request");
-            var file = request.Files[0];
-            var inputStream = file.InputStream;
-            String patchOnServer = Path.Combine(StorageRoot);
-            var fullName = Path.Combine(patchOnServer, Path.GetFileName(file.FileName));
-            var ThumbfullPath = Path.Combine(fullName, Path.GetFileName(file.FileName + "80x80.jpg"));
-            ImageHandler handler = new ImageHandler();
+            if (request.Files.Count != 1)
+            {
+                throw new HttpRequestValidationException(
+                    "Attempt to upload chunked file containing more than one file per request");
+            }
 
-            var ImageBit = ImageHandler.LoadImage(fullName);
-            handler.Save(ImageBit, 80, 80, 10, ThumbfullPath);
+            var file = request.Files[0];
+
+            if (file == null)
+            {
+                throw new InvalidOperationException("No file to upload.");
+            }
+
+            var inputStream = file.InputStream;
+            var pathOnServer = Path.Combine(_storageRoot);
+            var fullName = Path.Combine(pathOnServer, Path.GetFileName(file.FileName));
+            var thumbfullPath = Path.Combine(fullName, Path.GetFileName(file.FileName + "80x80.jpg"));
+
+            var handler = new ImageHandler();
+
+            var imageBit = ImageHandler.LoadImage(fullName);
+            handler.Save(imageBit, 80, 80, 10, thumbfullPath);
             using (var fs = new FileStream(fullName, FileMode.Append, FileAccess.Write))
             {
                 var buffer = new byte[1024];
@@ -195,99 +228,56 @@ namespace jQuery_File_Upload.MVC5.Helpers
                 fs.Flush();
                 fs.Close();
             }
-            statuses.Add(UploadResult(file.FileName, file.ContentLength, file.FileName));
+
+            uploadResults.Add(GetUploadResult(file.FileName, file.ContentLength, file.FileName));
         }
-        public ViewDataUploadFilesResult UploadResult(String FileName,int fileSize,String FileFullPath)
+
+        private ViewDataUploadFilesResult GetUploadResult(string fileName, int fileSize, string fileFullPath)
         {
-            String getType = System.Web.MimeMapping.GetMimeMapping(FileFullPath);
-            var result = new ViewDataUploadFilesResult()
+            var getType = MimeMapping.GetMimeMapping(fileFullPath);
+
+            var result = new ViewDataUploadFilesResult
             {
-                name = FileName,
-                size = fileSize,
-                type = getType,
-                url = UrlBase + FileName,
-                deleteUrl = DeleteURL + FileName,
-                thumbnailUrl = CheckThumb(getType, FileName),
-                deleteType = DeleteType,
+                Name = fileName,
+                Size = fileSize,
+                Type = getType,
+                Url = _urlBase + fileName,
+                DeleteUrl = _deleteUrl + fileName,
+                ThumbnailUrl = GetThumbnailUrl(getType, fileName),
+                DeleteType = _deleteType
             };
+
             return result;
         }
 
-        public String CheckThumb(String type,String FileName)
+        private string GetThumbnailUrl(string type, string fileName)
         {
-            var splited = type.Split('/');
-            if (splited.Length == 2)
-            {
-                string extansion = splited[1].ToLower();
-                if(extansion.Equals("jpeg") || extansion.Equals("jpg") || extansion.Equals("png") || extansion.Equals("gif"))
-                {
-                    String thumbnailUrl = UrlBase + "thumbs/" + Path.GetFileNameWithoutExtension(FileName) + "80x80.jpg";
-                    return thumbnailUrl;
-                }
-                else
-                {
-                    if (extansion.Equals("octet-stream")) //Fix for exe files
-                    {
-                        return "/Content/Free-file-icons/48px/exe.png";
+            var split = type.Split('/');
 
-                    }
-                    if (extansion.Contains("zip")) //Fix for exe files
-                    {
-                        return "/Content/Free-file-icons/48px/zip.png";
-                    }
-                    String thumbnailUrl = "/Content/Free-file-icons/48px/"+ extansion +".png";
-                    return thumbnailUrl;
-                }
-            }
-            else
+            if (split.Length == 2)
             {
-                return UrlBase + "/thumbs/" + Path.GetFileNameWithoutExtension(FileName) + "80x80.jpg";
-            }
-           
-        }
-        public List<String> FilesList()
-        {
+                var extension = split[1].ToLower();
 
-            List<String> Filess = new List<String>();
-            string path = HostingEnvironment.MapPath(serverMapPath);
-            System.Diagnostics.Debug.WriteLine(path);
-            if (Directory.Exists(path))
-            {
-                DirectoryInfo di = new DirectoryInfo(path);
-                foreach (FileInfo fi in di.GetFiles())
+                if (extension.Equals("jpeg") || extension.Equals("jpg") || extension.Equals("png") ||
+                    extension.Equals("gif"))
                 {
-                    Filess.Add(fi.Name);
-                    System.Diagnostics.Debug.WriteLine(fi.Name);
+                    return _urlBase + "thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
                 }
 
-            }
-            return Filess;
-        }
-    }
-    public class ViewDataUploadFilesResult
-    {
-        public string name { get; set; }
-        public int size { get; set; }
-        public string type { get; set; }
-        public string url { get; set; }
-        public string deleteUrl { get; set; }
-        public string thumbnailUrl { get; set; }
-        public string deleteType { get; set; }
-    }
-    public class JsonFiles
-    {
-        public ViewDataUploadFilesResult[] files;
-        public string TempFolder { get; set; }
-        public JsonFiles(List<ViewDataUploadFilesResult> filesList)
-        {
-            files = new ViewDataUploadFilesResult[filesList.Count];
-            for (int i = 0; i < filesList.Count; i++)
-            {
-                files[i] = filesList.ElementAt(i);
+                if (extension.Equals("octet-stream")) //Fix for exe files
+                {
+                    return "/Content/Free-file-icons/48px/exe.png";
+                }
+
+                if (extension.Contains("zip")) //Fix for exe files
+                {
+                    return "/Content/Free-file-icons/48px/zip.png";
+                }
+
+                return "/Content/Free-file-icons/48px/" + extension + ".png";
             }
 
+            return _urlBase + "/thumbs/" + Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
         }
     }
 }
-
-    

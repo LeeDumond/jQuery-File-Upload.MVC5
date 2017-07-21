@@ -127,6 +127,8 @@
     </Compile>
     <Compile Include="Helpers\FilesHelper.cs" />
     <Compile Include="Helpers\ImageHandler.cs" />
+    <Compile Include="Helpers\JsonFiles.cs" />
+    <Compile Include="Helpers\ViewDataUploadFilesResult.cs" />
     <Compile Include="Models\FilesViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
