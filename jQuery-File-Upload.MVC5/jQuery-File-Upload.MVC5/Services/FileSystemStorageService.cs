@@ -8,7 +8,7 @@ using jQuery_File_Upload.MVC5.Helpers;
 
 namespace jQuery_File_Upload.MVC5.Services
 {
-    public class SystemFileService : IFileService
+    public class FileSystemStorageService : IFileStorageService
     {
         private const string DeleteType = "GET";
         private const string DeleteUrl = "/FileUpload/DeleteFile/?file=";
@@ -17,7 +17,7 @@ namespace jQuery_File_Upload.MVC5.Services
 
         private readonly string _storageRoot;
 
-        public SystemFileService()
+        public FileSystemStorageService()
         {
             _storageRoot = Path.Combine(HostingEnvironment.MapPath(ServerMapPath));
         }

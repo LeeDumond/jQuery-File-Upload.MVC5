@@ -125,14 +125,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\FilesHelper.cs" />
     <Compile Include="Helpers\ImageHandler.cs" />
     <Compile Include="Helpers\JsonFiles.cs" />
     <Compile Include="Helpers\ViewDataUploadFilesResult.cs" />
     <Compile Include="Models\FilesViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\IFileService.cs" />
-    <Compile Include="Services\SystemFileService.cs" />
+    <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\FileSystemStorageService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\blueimp-gallery2\css\blueimp-gallery-indicator.css" />

@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Web.Hosting;
 using System.Web.Mvc;
 using jQuery_File_Upload.MVC5.Helpers;
 using jQuery_File_Upload.MVC5.Models;
@@ -11,22 +9,12 @@ namespace jQuery_File_Upload.MVC5.Controllers
 {
     public class FileUploadController : Controller
     {
-        private IFileService _fileService;
-
-        private const string TempPath = "~/somefiles/";
-        private const string ServerMapPath = "~/Files/somefiles/";
-        private const string UrlBase = "/Files/somefiles/";
-        private const string DeleteUrl = "/FileUpload/DeleteFile/?file=";
-        private const string DeleteType = "GET";
-        private readonly FilesHelper _filesHelper;
+        private readonly IFileStorageService _fileStorageService;
 
         public FileUploadController()
         {
-            _fileService = new SystemFileService(); // new DatabaseFileService();
-            _filesHelper = new FilesHelper(DeleteUrl, DeleteType, StorageRoot, UrlBase, TempPath, ServerMapPath);
+            _fileStorageService = new FileSystemStorageService(); // new DatabaseFileService();
         }
-
-        private static string StorageRoot => Path.Combine(HostingEnvironment.MapPath(ServerMapPath));
 
         public ActionResult Index()
         {
@@ -35,8 +23,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
         public ActionResult Show()
         {
-            //var listOfFiles = _filesHelper.GetFileList();
-            var listOfFiles = _fileService.GetFileList();
+            var listOfFiles = _fileStorageService.GetFileList();
 
             var model = new FilesViewModel
             {
@@ -56,9 +43,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
         {
             var resultList = new List<ViewDataUploadFilesResult>();
 
-            //_filesHelper.UploadAndAddToResults(HttpContext.Request, resultList);
-            //_filesHelper.UploadAndAddToResults(Request, resultList);
-            _fileService.UploadAndAddToResults(Request, resultList);
+            _fileStorageService.UploadAndAddToResults(Request, resultList);
 
             var files = new JsonFiles(resultList);
 
@@ -67,8 +52,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
         public JsonResult GetFileList()
         {
-            //var list = _filesHelper.GetFileList();
-            var list = _fileService.GetFileList();
+            var list = _fileStorageService.GetFileList();
 
             return Json(list, JsonRequestBehavior.AllowGet);
         }
@@ -76,7 +60,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
         [HttpGet]
         public JsonResult DeleteFile(string file)
         {
-            var suceeded = _fileService.DeleteFile(file);
+            var suceeded = _fileStorageService.DeleteFile(file);
 
             return Json(suceeded, JsonRequestBehavior.AllowGet);
         }
