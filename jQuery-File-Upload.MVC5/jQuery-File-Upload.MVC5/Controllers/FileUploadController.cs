@@ -35,7 +35,8 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
         public ActionResult Show()
         {
-            var listOfFiles = _filesHelper.GetFileList();
+            //var listOfFiles = _filesHelper.GetFileList();
+            var listOfFiles = _fileService.GetFileList();
 
             var model = new FilesViewModel
             {
@@ -66,7 +67,8 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
         public JsonResult GetFileList()
         {
-            var list = _filesHelper.GetFileList();
+            //var list = _filesHelper.GetFileList();
+            var list = _fileService.GetFileList();
 
             return Json(list, JsonRequestBehavior.AllowGet);
         }
@@ -74,9 +76,9 @@ namespace jQuery_File_Upload.MVC5.Controllers
         [HttpGet]
         public JsonResult DeleteFile(string file)
         {
-            var result = _filesHelper.DeleteFile(file);
+            var suceeded = _fileService.DeleteFile(file);
 
-            return Json(result, JsonRequestBehavior.AllowGet);
+            return Json(suceeded, JsonRequestBehavior.AllowGet);
         }
     }
 }
