@@ -33,17 +33,19 @@ namespace jQuery_File_Upload.MVC5.Services
         }
 
         private void UploadWholeFile(HttpRequestBase request, List<FileViewModel> uploadResults)
-        {       
+        {      
+            var file = new UploadedFile();
+
             using (_dbContext)
             {
-                foreach (HttpPostedFileBase fileData in request.Files)
+                //foreach (HttpPostedFileWrapper fileData in request.Files)
+                for (var i = 0; i < request.Files.Count; i++)
                 {
-                    var file = new UploadedFile
-                    {
-                        Name = VirtualPathUtility.GetFileName(fileData.FileName),
-                        MimeType = fileData.ContentType,
-                        Data = new byte[fileData.ContentLength]
-                    };
+                    HttpPostedFileWrapper fileData = (HttpPostedFileWrapper)request.Files[i];
+
+                    file.Name = Path.GetFileName(fileData.FileName);
+                    file.MimeType = fileData.ContentType;
+                        //Data = new byte[fileData.ContentLength]
 
                     using (var stream = new MemoryStream())
                     {
@@ -55,11 +57,13 @@ namespace jQuery_File_Upload.MVC5.Services
 
                     _dbContext.UploadedFiles.Add(file);
 
-                    uploadResults.Add(GetFileViewModelFromFile(file));
+                    
                 }
 
                 _dbContext.SaveChanges();
             }
+
+            uploadResults.Add(GetFileViewModelFromFile(file));
         }
 
         private void UploadPartialFile(string fileName, HttpRequestBase request, List<FileViewModel> uploadResults)
@@ -124,10 +128,12 @@ namespace jQuery_File_Upload.MVC5.Services
 
         public bool DeleteFile(object identifier)
         {
-            var id = identifier as Guid?;
+            var idString = ((string[])identifier)[0];
 
-            if (id != null)
+            if (idString != null)
             {
+                Guid id = Guid.Parse(idString);
+
                 using (_dbContext)
                 {
                     var file = _dbContext.UploadedFiles.Find(id);
@@ -162,9 +168,9 @@ namespace jQuery_File_Upload.MVC5.Services
                 name = file.Name,
                 size = file.Data.Length,
                 type = file.MimeType,
-                url = "/FileUpload/GetFile/?file=",
-                deleteUrl = "/FileUpload/DeleteFile/?file=",
-                thumbnailUrl = "/FileUpload/GetFileThumbnail/?file=",
+                url = "/FileUpload/GetFile/" + file.Id,
+                deleteUrl = "/FileUpload/DeleteFile/?file=" + file.Id,
+                thumbnailUrl = "/FileUpload/GetFile/" + file.Id,
                 deleteType = "GET"
             };
 

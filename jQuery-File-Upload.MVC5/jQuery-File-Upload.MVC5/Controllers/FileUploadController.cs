@@ -14,7 +14,8 @@ namespace jQuery_File_Upload.MVC5.Controllers
 
         public FileUploadController()
         {
-            _fileStorageService = new FileSystemStorageService(); // new DatabaseFileService();
+            _fileStorageService =  new DatabaseStorageService(); 
+            //_fileStorageService =  new FileSystemStorageService();
         }
 
         public ActionResult Index()
