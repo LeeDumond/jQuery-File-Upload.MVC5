@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Web;
 using jQuery_File_Upload.MVC5.Helpers;
+using jQuery_File_Upload.MVC5.Models;
 
 namespace jQuery_File_Upload.MVC5.Services
 {
     public class DatabaseStorageService : IFileStorageService
     {
-        public void UploadAndAddToResults(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
+        public void UploadAndAddToResults(HttpRequestBase request, List<FileViewModel> uploadResults)
         {
             throw new System.NotImplementedException();
         }

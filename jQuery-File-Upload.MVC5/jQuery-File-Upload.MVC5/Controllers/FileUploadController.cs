@@ -25,9 +25,9 @@ namespace jQuery_File_Upload.MVC5.Controllers
         {
             var listOfFiles = _fileStorageService.GetFileList();
 
-            var model = new FilesViewModel
+            var model = new ShowFilesViewModel
             {
-                Files = listOfFiles.files
+                FileModels = listOfFiles.files
             };
 
             return View(model);
@@ -41,7 +41,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
         [HttpPost]
         public JsonResult Upload()
         {
-            var resultList = new List<ViewDataUploadFilesResult>();
+            var resultList = new List<FileViewModel>();
 
             _fileStorageService.UploadAndAddToResults(Request, resultList);
 

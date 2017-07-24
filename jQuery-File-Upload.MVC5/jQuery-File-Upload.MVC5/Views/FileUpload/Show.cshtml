@@ -1,5 +1,5 @@
-﻿@model jQuery_File_Upload.MVC5.Models.FilesViewModel
-@using jQuery_File_Upload.MVC5.Helpers
+﻿@model jQuery_File_Upload.MVC5.Models.ShowFilesViewModel
+@using jQuery_File_Upload.MVC5.Models
 
 
 @{
@@ -20,9 +20,9 @@
 </div>
 <div id="links">
 
-    @if (@Model.Files != null && @Model.Files.Any())
+    @if (@Model.FileModels != null && @Model.FileModels.Any())
     {
-        foreach (ViewDataUploadFilesResult file in @Model.Files)
+        foreach (FileViewModel file in Model.FileModels)
         {
 
             if (file.type.Equals("video/mp4"))

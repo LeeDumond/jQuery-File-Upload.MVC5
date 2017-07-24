@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Hosting;
 using jQuery_File_Upload.MVC5.Helpers;
+using jQuery_File_Upload.MVC5.Models;
 
 namespace jQuery_File_Upload.MVC5.Services
 {
@@ -22,7 +23,7 @@ namespace jQuery_File_Upload.MVC5.Services
             _storageRoot = Path.Combine(HostingEnvironment.MapPath(ServerMapPath));
         }
 
-        public void UploadAndAddToResults(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
+        public void UploadAndAddToResults(HttpRequestBase request, List<FileViewModel> uploadResults)
         {
             var fullPath = Path.Combine(_storageRoot);
             Directory.CreateDirectory(fullPath);
@@ -43,7 +44,7 @@ namespace jQuery_File_Upload.MVC5.Services
 
         public JsonFiles GetFileList()
         {
-            var fileResults = new List<ViewDataUploadFilesResult>();
+            var fileResults = new List<FileViewModel>();
 
             var fullPath = Path.Combine(_storageRoot);
 
@@ -89,7 +90,7 @@ namespace jQuery_File_Upload.MVC5.Services
             return false;
         }
 
-        private void UploadWholeFile(HttpRequestBase request, List<ViewDataUploadFilesResult> uploadResults)
+        private void UploadWholeFile(HttpRequestBase request, List<FileViewModel> uploadResults)
         {
             for (var i = 0; i < request.Files.Count; i++)
             {
@@ -123,7 +124,7 @@ namespace jQuery_File_Upload.MVC5.Services
         }
 
         private void UploadPartialFile(string fileName, HttpRequestBase request,
-            List<ViewDataUploadFilesResult> uploadResults)
+            List<FileViewModel> uploadResults)
         {
             if (fileName == null)
             {
@@ -169,11 +170,11 @@ namespace jQuery_File_Upload.MVC5.Services
             uploadResults.Add(GetUploadResult(file.FileName, file.ContentLength, file.FileName));
         }
 
-        private ViewDataUploadFilesResult GetUploadResult(string fileName, int fileSize, string fileFullPath)
+        private FileViewModel GetUploadResult(string fileName, int fileSize, string fileFullPath)
         {
             var getType = MimeMapping.GetMimeMapping(fileFullPath);
 
-            var result = new ViewDataUploadFilesResult
+            var result = new FileViewModel
             {
                 name = fileName,
                 size = fileSize,

@@ -1,8 +1,8 @@
 // ReSharper disable InconsistentNaming
 
-namespace jQuery_File_Upload.MVC5.Helpers
+namespace jQuery_File_Upload.MVC5.Models
 {
-    public class ViewDataUploadFilesResult
+    public class FileViewModel
     {
         public string name { get; set; }
         public int size { get; set; }

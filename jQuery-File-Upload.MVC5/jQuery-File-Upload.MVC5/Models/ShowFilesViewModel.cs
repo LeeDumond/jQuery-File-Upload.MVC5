@@ -2,8 +2,8 @@
 
 namespace jQuery_File_Upload.MVC5.Models
 {
-    public class FilesViewModel
+    public class ShowFilesViewModel
     {
-        public ViewDataUploadFilesResult[] Files { get; set; }
+        public FileViewModel[] FileModels { get; set; }
     }
 }
