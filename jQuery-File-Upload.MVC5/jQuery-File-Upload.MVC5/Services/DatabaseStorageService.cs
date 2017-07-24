@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Web;
 using jQuery_File_Upload.MVC5.Data;
 using jQuery_File_Upload.MVC5.Helpers;
@@ -19,7 +20,91 @@ namespace jQuery_File_Upload.MVC5.Services
 
         public void UploadAndAddToResults(HttpRequestBase request, List<FileViewModel> uploadResults)
         {
-            throw new System.NotImplementedException();
+            var headers = request.Headers;
+
+            if (string.IsNullOrEmpty(headers["X-File-Name"]))
+            {
+                UploadWholeFile(request, uploadResults);
+            }
+            else
+            {
+                UploadPartialFile(headers["X-File-Name"], request, uploadResults);
+            }
+        }
+
+        private void UploadWholeFile(HttpRequestBase request, List<FileViewModel> uploadResults)
+        {       
+            using (_dbContext)
+            {
+                foreach (HttpPostedFileBase fileData in request.Files)
+                {
+                    var file = new UploadedFile
+                    {
+                        Name = VirtualPathUtility.GetFileName(fileData.FileName),
+                        MimeType = fileData.ContentType,
+                        Data = new byte[fileData.ContentLength]
+                    };
+
+                    using (var stream = new MemoryStream())
+                    {
+                        fileData.InputStream.CopyTo(stream);
+                        file.Data = stream.ToArray();
+                    }
+
+                    //fileData.InputStream.Read(file.Data, 0, fileData.ContentLength);
+
+                    _dbContext.UploadedFiles.Add(file);
+
+                    uploadResults.Add(GetFileViewModelFromFile(file));
+                }
+
+                _dbContext.SaveChanges();
+            }
+        }
+
+        private void UploadPartialFile(string fileName, HttpRequestBase request, List<FileViewModel> uploadResults)
+        {
+            if (fileName == null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            if (request.Files.Count != 1)
+            {
+                throw new HttpRequestValidationException(
+                    "Attempt to upload chunked file containing more than one file per request");
+            }
+
+            HttpPostedFileBase fileData = request.Files[0];
+
+            if (fileData == null)
+            {
+                throw new InvalidOperationException("No file to upload.");
+            }
+
+            var file = new UploadedFile
+            {
+                Name = VirtualPathUtility.GetFileName(fileData.FileName),
+                MimeType = fileData.ContentType,
+                Data = new byte[fileData.ContentLength]
+            };
+
+            Stream inputStream = fileData.InputStream;
+
+            using (var memStream = new MemoryStream())
+            {
+                var buffer = new byte[1024];
+                int read;
+
+                while ((read = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    memStream.Write(buffer, 0, read);
+                }
+
+                file.Data = memStream.ToArray();
+            }
+
+            uploadResults.Add(GetFileViewModelFromFile(file));
         }
 
         public JsonFiles GetFileList()
@@ -51,15 +136,11 @@ namespace jQuery_File_Upload.MVC5.Services
                     {
                         return false;
                     }
-                    else
-                    {
-                        _dbContext.UploadedFiles.Remove(file);
-                        _dbContext.SaveChanges();
 
-                        return true;
-                    }
+                    _dbContext.UploadedFiles.Remove(file);
+                    _dbContext.SaveChanges();
 
-                    
+                    return true;
                 }
             }
 
@@ -78,7 +159,7 @@ namespace jQuery_File_Upload.MVC5.Services
         {
             var result = new FileViewModel
             {
-                name = file.FileName,
+                name = file.Name,
                 size = file.Data.Length,
                 type = file.MimeType,
                 url = "/FileUpload/GetFile/?file=",

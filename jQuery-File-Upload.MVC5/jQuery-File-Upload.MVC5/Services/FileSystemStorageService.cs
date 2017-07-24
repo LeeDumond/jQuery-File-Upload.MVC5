@@ -118,7 +118,7 @@ namespace jQuery_File_Upload.MVC5.Services
 
                         using (var stream = new MemoryStream(File.ReadAllBytes(fullPath)))
                         {
-                            var thumbnail = new WebImage(stream).Resize(80, 80);
+                            WebImage thumbnail = new WebImage(stream).Resize(80, 80);
                             thumbnail.Save(thumbnailFilePath, "jpg");
                         }
                     }
@@ -149,7 +149,7 @@ namespace jQuery_File_Upload.MVC5.Services
                 throw new InvalidOperationException("No file to upload.");
             }
 
-            var inputStream = file.InputStream;
+            Stream inputStream = file.InputStream;
             var pathOnServer = Path.Combine(_storageRoot);
             string thumbnailFileName = Path.GetFileNameWithoutExtension(fileName) + "80x80.jpg";
             string thumbnailFilePath = Path.Combine(Path.Combine(pathOnServer, "thumbs"), thumbnailFileName);
