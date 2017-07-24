@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Web;
 using jQuery_File_Upload.MVC5.Data;
@@ -38,7 +39,39 @@ namespace jQuery_File_Upload.MVC5.Services
 
         public bool DeleteFile(object identifier)
         {
-            throw new System.NotImplementedException();
+            var id = identifier as Guid?;
+
+            if (id != null)
+            {
+                using (_dbContext)
+                {
+                    var file = _dbContext.UploadedFiles.Find(id);
+
+                    if (file == null)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        _dbContext.UploadedFiles.Remove(file);
+                        _dbContext.SaveChanges();
+
+                        return true;
+                    }
+
+                    
+                }
+            }
+
+            return false;
+        }
+
+        public UploadedFile GetFile(Guid id)
+        {
+            using (_dbContext)
+            {
+                return _dbContext.UploadedFiles.Find(id);
+            }
         }
 
         private FileViewModel GetFileViewModelFromFile(UploadedFile file)

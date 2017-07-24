@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using jQuery_File_Upload.MVC5.Helpers;
@@ -55,6 +56,13 @@ namespace jQuery_File_Upload.MVC5.Controllers
             var list = _fileStorageService.GetFileList();
 
             return Json(list, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetFile(Guid id)
+        {
+            UploadedFile file = _fileStorageService.GetFile(id);
+
+            return File(file.Data, file.MimeType, file.FileName);
         }
 
         [HttpGet]

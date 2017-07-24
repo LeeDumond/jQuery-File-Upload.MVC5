@@ -90,6 +90,11 @@ namespace jQuery_File_Upload.MVC5.Services
             return false;
         }
 
+        public UploadedFile GetFile(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         private void UploadWholeFile(HttpRequestBase request, List<FileViewModel> uploadResults)
         {
             for (var i = 0; i < request.Files.Count; i++)
