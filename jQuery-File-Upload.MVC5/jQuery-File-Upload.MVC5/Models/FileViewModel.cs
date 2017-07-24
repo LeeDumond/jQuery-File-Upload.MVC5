@@ -10,6 +10,6 @@ namespace jQuery_File_Upload.MVC5.Models
         public string url { get; set; }
         public string deleteUrl { get; set; }
         public string thumbnailUrl { get; set; }
-        public string deleteType { get; set; }
+        public string deleteType { get; set; }        
     }
 }

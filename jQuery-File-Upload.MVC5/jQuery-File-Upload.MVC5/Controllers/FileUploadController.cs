@@ -58,7 +58,7 @@ namespace jQuery_File_Upload.MVC5.Controllers
         }
 
         [HttpGet]
-        public JsonResult DeleteFile(string file)
+        public JsonResult DeleteFile(object file)
         {
             var suceeded = _fileStorageService.DeleteFile(file);
 

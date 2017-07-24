@@ -66,7 +66,7 @@ namespace jQuery_File_Upload.MVC5.Services
         public bool DeleteFile(object identifier)
         {
             // in this implementation, identifier is file name
-            string fileName = identifier as string;
+            string fileName = ((string[])identifier)[0];
 
             if (fileName != null)
             {
