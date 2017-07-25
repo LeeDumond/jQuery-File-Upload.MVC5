@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Web;
+using System.Web.Helpers;
 using jQuery_File_Upload.MVC5.Data;
 using jQuery_File_Upload.MVC5.Helpers;
 using jQuery_File_Upload.MVC5.Models;
@@ -50,23 +51,12 @@ namespace jQuery_File_Upload.MVC5.Services
                         file.Name = Path.GetFileName(fileData.FileName);
                         file.MimeType = fileData.ContentType;
 
-                        Image image;
-
                         using (var mainStream = new MemoryStream())
                         {
                             fileData.InputStream.CopyTo(mainStream);
                             file.Data = mainStream.ToArray();
-
-                            image = Image.FromStream(mainStream);                            
-                        }
-
-                        using (var thumbStream = new MemoryStream())
-                        {
-                            Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
-
-                            thumbImage.Save(thumbStream, ImageFormat.Jpeg);
-                            file.ThumbnailData = thumbStream.ToArray();
-                        }
+                            file.ThumbnailData = GetThumbnailData(mainStream);
+                        }                        
 
                         _dbContext.UploadedFiles.Add(file);
                     } 
@@ -77,6 +67,31 @@ namespace jQuery_File_Upload.MVC5.Services
 
             uploadResults.Add(GetFileViewModelFromFile(file));
         }
+
+        private byte[] GetThumbnailData(MemoryStream stream)
+        {
+            WebImage thumbnail = new WebImage(stream).Resize(80,80);
+
+            byte[] data = thumbnail.GetBytes();
+
+            return data;
+        }
+
+        //private byte[] GetThumbnailData(MemoryStream memoryStream)
+        //{
+        //    byte[] data;
+
+        //    Bitmap image = (Bitmap) Image.FromStream(memoryStream);
+        //    Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
+
+        //    using (var stream = new MemoryStream())
+        //    {
+        //        thumbImage.Save(stream, ImageFormat.Jpeg);
+        //        data = stream.ToArray();
+        //    }
+
+        //    return data;
+        //}
 
         private void UploadPartialFile(string fileName, HttpRequestBase request, List<FileViewModel> uploadResults)
         {
