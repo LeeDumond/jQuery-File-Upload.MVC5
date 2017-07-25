@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Web;
 using jQuery_File_Upload.MVC5.Data;
@@ -49,11 +51,31 @@ namespace jQuery_File_Upload.MVC5.Services
                         file.MimeType = fileData.ContentType;
                         //Data = new byte[fileData.ContentLength]
 
-                        using (var stream = new MemoryStream())
+                        using (var mainStream = new MemoryStream())
                         {
-                            fileData.InputStream.CopyTo(stream);
-                            file.Data = stream.ToArray();
+                            fileData.InputStream.CopyTo(mainStream);
+                            file.Data = mainStream.ToArray();
+
+                            Image image = Image.FromStream(mainStream);
+                            Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
+
+                            using (var stream2 = new MemoryStream())
+                            {
+                                thumbImage.Save(stream2, ImageFormat.Jpeg);
+                                file.ThumbnailData = stream2.ToArray();
+                            }
+
                         }
+
+                        //using (var thumbStream = new MemoryStream(file.Data))
+                        //{
+                        //    Image image = Image.FromStream(thumbStream);
+                        //    Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
+
+                        //    thumbImage.Save(thumbStream, thumbImage.RawFormat);
+                        //    file.ThumbnailData = thumbStream.ToArray();
+                        //}
+
 
                         //fileData.InputStream.Read(file.Data, 0, fileData.ContentLength);
 
@@ -99,11 +121,12 @@ namespace jQuery_File_Upload.MVC5.Services
             using (var memStream = new MemoryStream())
             {
                 var buffer = new byte[1024];
-                int read;
+                int read = inputStream.Read(buffer, 0, buffer.Length); ;
 
-                while ((read = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                while (read > 0)
                 {
                     memStream.Write(buffer, 0, read);
+                    read = inputStream.Read(buffer, 0, buffer.Length);
                 }
 
                 file.Data = memStream.ToArray();
@@ -171,11 +194,16 @@ namespace jQuery_File_Upload.MVC5.Services
                 type = file.MimeType,
                 url = "/FileUpload/GetFile/" + file.Id,
                 deleteUrl = "/FileUpload/DeleteFile/?file=" + file.Id,
-                thumbnailUrl = "/FileUpload/GetFileThumbnail/" + file.Id,
+                thumbnailUrl = GetThumbnailUrl(file),
                 deleteType = "GET"
             };
 
             return result;
+        }
+
+        private static string GetThumbnailUrl(UploadedFile file)
+        {
+            return "/FileUpload/GetFileThumbnail/" + file.Id;
         }
     }
 }
