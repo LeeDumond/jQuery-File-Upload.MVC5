@@ -71,14 +71,16 @@ namespace jQuery_File_Upload.MVC5.Services
 
         private byte[] GetThumbnailData(MemoryStream stream, string name)
         {
-            //try
-            //{
-            //    WebImage thumbnail = new WebImage(stream).Resize(80,80);
+            string extension = Path.GetExtension(name);
 
-            //    return thumbnail.GetBytes();
-            //}
-            //catch (ArgumentException )
-            //{
+            if (extension == ".jpg" || extension == ".png" || extension == ".gif")
+            {
+                WebImage thumbnail = new WebImage(stream).Resize(48, 48);
+
+                return thumbnail.GetBytes("png");
+            }
+
+
             var path = HttpContext.Current.Server.MapPath("~/App_Data/" + name);
 
             using (var fileStream = File.Create(path, 4096, FileOptions.DeleteOnClose))
@@ -87,16 +89,13 @@ namespace jQuery_File_Upload.MVC5.Services
 
                 ShellFile shellFile = ShellFile.FromFilePath(path);
                 Bitmap thumbNail = shellFile.Thumbnail.ExtraLargeBitmap;
-                Bitmap resizedThumbnail = new Bitmap(thumbNail, 80, 80);
+                Bitmap resizedThumbnail = new Bitmap(thumbNail, 48, 48);
+                resizedThumbnail.MakeTransparent();
 
                 ImageConverter converter = new ImageConverter();
 
-                return (byte[]) converter.ConvertTo(resizedThumbnail, typeof(byte[]));
+                return (byte[])converter.ConvertTo(resizedThumbnail, typeof(byte[]));
             }
-
-            //return null;
-
-            //}            
         }
 
         private void UploadPartialFile(string fileName, HttpRequestBase request, List<FileViewModel> uploadResults)
