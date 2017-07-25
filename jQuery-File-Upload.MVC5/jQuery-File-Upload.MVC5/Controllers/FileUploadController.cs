@@ -70,7 +70,12 @@ namespace jQuery_File_Upload.MVC5.Controllers
         {
             UploadedFile file = _fileStorageService.GetFile(id);
 
-            return File(file.ThumbnailData, "image/jpg", file.Name);
+            if (file.ThumbnailData != null)
+            {
+                return File(file.ThumbnailData, "image/png", file.Name);
+            }
+
+            return new EmptyResult();
         }
 
         [HttpGet]

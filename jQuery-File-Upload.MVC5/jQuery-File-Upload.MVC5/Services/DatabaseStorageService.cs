@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Drawing;
@@ -9,6 +10,7 @@ using System.Web.Helpers;
 using jQuery_File_Upload.MVC5.Data;
 using jQuery_File_Upload.MVC5.Helpers;
 using jQuery_File_Upload.MVC5.Models;
+using Microsoft.WindowsAPICodePack.Shell;
 
 namespace jQuery_File_Upload.MVC5.Services
 {
@@ -36,15 +38,14 @@ namespace jQuery_File_Upload.MVC5.Services
         }
 
         private void UploadWholeFile(HttpRequestBase request, List<FileViewModel> uploadResults)
-        {      
+        {
             var file = new UploadedFile();
 
             using (_dbContext)
             {
-                //foreach (HttpPostedFileWrapper fileData in request.Files)
                 for (var i = 0; i < request.Files.Count; i++)
                 {
-                    HttpPostedFileWrapper fileData = (HttpPostedFileWrapper)request.Files[i];
+                    HttpPostedFileWrapper fileData = (HttpPostedFileWrapper) request.Files[i];
 
                     if (fileData != null)
                     {
@@ -55,11 +56,11 @@ namespace jQuery_File_Upload.MVC5.Services
                         {
                             fileData.InputStream.CopyTo(mainStream);
                             file.Data = mainStream.ToArray();
-                            file.ThumbnailData = GetThumbnailData(mainStream);
-                        }                        
+                            file.ThumbnailData = GetThumbnailData(mainStream, file.Name);
+                        }
 
                         _dbContext.UploadedFiles.Add(file);
-                    } 
+                    }
                 }
 
                 _dbContext.SaveChanges();
@@ -68,30 +69,35 @@ namespace jQuery_File_Upload.MVC5.Services
             uploadResults.Add(GetFileViewModelFromFile(file));
         }
 
-        private byte[] GetThumbnailData(MemoryStream stream)
+        private byte[] GetThumbnailData(MemoryStream stream, string name)
         {
-            WebImage thumbnail = new WebImage(stream).Resize(80,80);
+            //try
+            //{
+            //    WebImage thumbnail = new WebImage(stream).Resize(80,80);
 
-            byte[] data = thumbnail.GetBytes();
+            //    return thumbnail.GetBytes();
+            //}
+            //catch (ArgumentException )
+            //{
+            var path = HttpContext.Current.Server.MapPath("~/App_Data/" + name);
 
-            return data;
+            using (var fileStream = File.Create(path, 4096, FileOptions.DeleteOnClose))
+            {
+                stream.CopyTo(fileStream);
+
+                ShellFile shellFile = ShellFile.FromFilePath(path);
+                Bitmap thumbNail = shellFile.Thumbnail.ExtraLargeBitmap;
+                Bitmap resizedThumbnail = new Bitmap(thumbNail, 80, 80);
+
+                ImageConverter converter = new ImageConverter();
+
+                return (byte[]) converter.ConvertTo(resizedThumbnail, typeof(byte[]));
+            }
+
+            //return null;
+
+            //}            
         }
-
-        //private byte[] GetThumbnailData(MemoryStream memoryStream)
-        //{
-        //    byte[] data;
-
-        //    Bitmap image = (Bitmap) Image.FromStream(memoryStream);
-        //    Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
-
-        //    using (var stream = new MemoryStream())
-        //    {
-        //        thumbImage.Save(stream, ImageFormat.Jpeg);
-        //        data = stream.ToArray();
-        //    }
-
-        //    return data;
-        //}
 
         private void UploadPartialFile(string fileName, HttpRequestBase request, List<FileViewModel> uploadResults)
         {
@@ -125,7 +131,8 @@ namespace jQuery_File_Upload.MVC5.Services
             using (var memStream = new MemoryStream())
             {
                 var buffer = new byte[1024];
-                int read = inputStream.Read(buffer, 0, buffer.Length); ;
+                int read = inputStream.Read(buffer, 0, buffer.Length);
+                ;
 
                 while (read > 0)
                 {
@@ -156,7 +163,7 @@ namespace jQuery_File_Upload.MVC5.Services
 
         public bool DeleteFile(object identifier)
         {
-            var idString = ((string[])identifier)[0];
+            var idString = ((string[]) identifier)[0];
 
             if (idString != null)
             {
