@@ -43,21 +43,22 @@ namespace jQuery_File_Upload.MVC5.Services
                 {
                     HttpPostedFileWrapper fileData = (HttpPostedFileWrapper)request.Files[i];
 
-                    file.Name = Path.GetFileName(fileData.FileName);
-                    file.MimeType = fileData.ContentType;
+                    if (fileData != null)
+                    {
+                        file.Name = Path.GetFileName(fileData.FileName);
+                        file.MimeType = fileData.ContentType;
                         //Data = new byte[fileData.ContentLength]
 
-                    using (var stream = new MemoryStream())
-                    {
-                        fileData.InputStream.CopyTo(stream);
-                        file.Data = stream.ToArray();
-                    }
+                        using (var stream = new MemoryStream())
+                        {
+                            fileData.InputStream.CopyTo(stream);
+                            file.Data = stream.ToArray();
+                        }
 
-                    //fileData.InputStream.Read(file.Data, 0, fileData.ContentLength);
+                        //fileData.InputStream.Read(file.Data, 0, fileData.ContentLength);
 
-                    _dbContext.UploadedFiles.Add(file);
-
-                    
+                        _dbContext.UploadedFiles.Add(file);
+                    } 
                 }
 
                 _dbContext.SaveChanges();
@@ -90,7 +91,7 @@ namespace jQuery_File_Upload.MVC5.Services
             {
                 Name = VirtualPathUtility.GetFileName(fileData.FileName),
                 MimeType = fileData.ContentType,
-                Data = new byte[fileData.ContentLength]
+                //Data = new byte[fileData.ContentLength]
             };
 
             Stream inputStream = fileData.InputStream;
@@ -170,7 +171,7 @@ namespace jQuery_File_Upload.MVC5.Services
                 type = file.MimeType,
                 url = "/FileUpload/GetFile/" + file.Id,
                 deleteUrl = "/FileUpload/DeleteFile/?file=" + file.Id,
-                thumbnailUrl = "/FileUpload/GetFile/" + file.Id,
+                thumbnailUrl = "/FileUpload/GetFileThumbnail/" + file.Id,
                 deleteType = "GET"
             };
 

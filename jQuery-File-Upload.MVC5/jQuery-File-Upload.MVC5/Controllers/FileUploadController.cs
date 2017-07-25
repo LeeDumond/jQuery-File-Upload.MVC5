@@ -66,6 +66,13 @@ namespace jQuery_File_Upload.MVC5.Controllers
             return File(file.Data, file.MimeType, file.Name);
         }
 
+        public ActionResult GetFileThumbnail(Guid id)
+        {
+            UploadedFile file = _fileStorageService.GetFile(id);
+
+            return File(file.ThumbnailData, file.MimeType, file.Name);
+        }
+
         [HttpGet]
         public JsonResult DeleteFile(object file)
         {
