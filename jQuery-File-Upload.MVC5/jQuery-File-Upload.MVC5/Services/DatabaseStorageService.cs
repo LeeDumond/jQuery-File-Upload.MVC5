@@ -140,6 +140,7 @@ namespace jQuery_File_Upload.MVC5.Services
                 }
 
                 file.Data = memStream.ToArray();
+                file.ThumbnailData = GetThumbnailData(memStream, file.Name);
             }
 
             uploadResults.Add(GetFileViewModelFromFile(file));
