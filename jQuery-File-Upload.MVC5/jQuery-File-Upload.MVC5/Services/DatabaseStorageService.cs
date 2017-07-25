@@ -49,35 +49,24 @@ namespace jQuery_File_Upload.MVC5.Services
                     {
                         file.Name = Path.GetFileName(fileData.FileName);
                         file.MimeType = fileData.ContentType;
-                        //Data = new byte[fileData.ContentLength]
+
+                        Image image;
 
                         using (var mainStream = new MemoryStream())
                         {
                             fileData.InputStream.CopyTo(mainStream);
                             file.Data = mainStream.ToArray();
 
-                            Image image = Image.FromStream(mainStream);
-                            Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
-
-                            using (var stream2 = new MemoryStream())
-                            {
-                                thumbImage.Save(stream2, ImageFormat.Jpeg);
-                                file.ThumbnailData = stream2.ToArray();
-                            }
-
+                            image = Image.FromStream(mainStream);                            
                         }
 
-                        //using (var thumbStream = new MemoryStream(file.Data))
-                        //{
-                        //    Image image = Image.FromStream(thumbStream);
-                        //    Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
+                        using (var thumbStream = new MemoryStream())
+                        {
+                            Image thumbImage = image.GetThumbnailImage(80, 80, () => false, IntPtr.Zero);
 
-                        //    thumbImage.Save(thumbStream, thumbImage.RawFormat);
-                        //    file.ThumbnailData = thumbStream.ToArray();
-                        //}
-
-
-                        //fileData.InputStream.Read(file.Data, 0, fileData.ContentLength);
+                            thumbImage.Save(thumbStream, ImageFormat.Jpeg);
+                            file.ThumbnailData = thumbStream.ToArray();
+                        }
 
                         _dbContext.UploadedFiles.Add(file);
                     } 
